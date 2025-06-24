@@ -20,7 +20,7 @@ tb_wide <- tb_cn %>%
   pivot_wider(names_from = sex, values_from = n)
 
 
-# Fit a linear model with different slopes per district: female ~ male * district
+# Fit a linear model with the same slope across districts: female ~ male
 # and get the R2 
 model <- lm(female ~ male, data = tb_wide)
 r_squared <- summary(model)$r.squared
