@@ -99,9 +99,12 @@ census_final %>%
     growthY_census = case_when(date < zoo::as.yearqtr("2014 Q1") ~ growth02_14,
                               TRUE ~ growth14_24),
     birthrateY_adj = growthY_census + deathrateY,
-    growth_quarterly_compound = (1+growthY_census)^(1/4),
+    # birthrate is adjusted as the sum of 
+    # the region specific growth rate (derived from 10y intercensoral growth rates)
+    # and the uganda specific, annual deathrates
     pop_assumed = case_when(date ==zoo::as.yearqtr("2002 Q1") ~ pop2002,
-                           TRUE ~ pop2002 * cumprod(growth_quarterly_compound)),
+                           TRUE ~ pop2002 * cumprod((1+growthY_census)^(1/4))),
+    # calculate the quarterly (compounding) growthrate
     births = pop_assumed * (1+birthrateY_adj),
     deaths = pop_assumed * (1-deathrateY)) %>%
   ungroup() -> census_complete
