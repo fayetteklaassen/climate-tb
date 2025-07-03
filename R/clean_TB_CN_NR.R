@@ -8,7 +8,7 @@ library(readxl)
 library(fs)
 
 # root of data folder
-root_path <- "."
+root_path <- "data"
 
 # list of Karamoja's districts and map to the original 5 districts
 districts <- c(
@@ -72,9 +72,6 @@ sum(is.na(tb_cn_2$CN))
 filter(tb_cn_2, is.na(CN))
 # manually checked in original csv file: PASS
 
-# TODO: population size time-series over 2015-2017 to be rebuild
-
-
 # ---- TB CN 2020 - 2024 ----
 
 tb_file_3 <- "Notifications.csv"
@@ -123,6 +120,16 @@ tb_cn <- bind_rows(select(tb_cn_1, -Population), tb_cn_2, tb_cn_3)
 tb_cn <- tb_cn %>% mutate(root_district = districts_map[District]) %>%
   group_by(Year, Quarter, root_district) %>% summarize(CN = sum(CN)) %>% ungroup
 
+# ---- Population size time-series ----
+
+pop_file <- "pop-quarterly-assumed.csv"
+
+pop <- read_csv(path(root_path, pop_file), na = "NA") %>%
+  mutate(Year = str_extract(date, "^\\d{4}"),
+         Quarter = str_extract(date, "\\d$"),
+         )
+
+tb_cn %>% join(pop)
 # ---- Plotting ----
 
 # Okabe-Ito palette (8 colors)
