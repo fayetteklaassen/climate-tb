@@ -232,7 +232,10 @@ cn_hist_sex_14 %>%
     date = zoo::as.yearqtr(paste0(year, " Q", quarter)),
     diagnosis, tbhistory, 
     sex, age = "all", 
-    outcome = "notified", n) -> notif
+    outcome = "notified", n) %>%
+  # filter out the 'total' sex groups, to prevent double counting
+  # totals are only listed for a few categories, not all.
+  filter(sex != "total") -> notif
 
   # write.csv(notif, "data-clean/tb_20072014_notifications.csv")
 
