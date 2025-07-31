@@ -5,6 +5,7 @@ source("R/helper.R")
 df <- read_csv("data-clean/tb_total.csv") %>%
          left_join(subregions, by = "region") %>%
          filter(diagnosis != "eptb") %>%
+  filter(diagnosis != "EPTB") %>%
   mutate(date = zoo::as.yearqtr(date))
 
 

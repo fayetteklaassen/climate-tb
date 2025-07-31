@@ -6,7 +6,7 @@ source("R/helper.R")
 
 #### 
 # list.files(filedir)
-## Notifications -- three slices of notification data: (1) by on-treatment (2) by reigsterd and (3)
+## Notifications -- three slices of notification data: (1) by on-treatment (2) by registered and (3)
 # by age/sex for only new and relapse
 ## Outcomes -- two slices of outcomes (by age/sex and by diagnosis/tbhistory), 
 # in addition to 3 unique summary measures (coded as additinoal slices)
@@ -59,6 +59,8 @@ oo <- read.csv(paste0(filedir,"oUTCOMES_2020-Onwards.csv")) %>%
               outcome == "died_all" ~ "died_all",
               outcome == "success_rate" ~ "success_rate",
               diagnosis == "all" ~ "outcomes-new-relapse_sex_age",
+              diagnosis %in% c("unknown",
+                               "eptb", "cd","bc") & outcome == "notified" ~ "notified_diagnosis_tbhistory_sex",
               diagnosis %in% c("unknown",
                                "eptb", "cd","bc") ~ "outcomes_diagnosis_tbhistory_sex"),
             region, date  = zoo::as.yearqtr(paste0(year, " Q", quarter)),
