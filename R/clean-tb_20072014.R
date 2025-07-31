@@ -271,7 +271,7 @@ final <- rbind(notif, outcomes) %>%
   mutate(n = case_when(region == "Amudat" & date < as.yearqtr("2010 Q3") ~ NA,
                        region == "Napak" & date < as.yearqtr("2010 Q4") ~ NA,
                        date > as.yearqtr("2014 Q1") ~ NA,
-                       TRUE ~ replace_na(n)))
+                       TRUE ~ replace_na(n, 0)))
 
 write_csv(final,
           "data-clean/tb_20072014.csv")

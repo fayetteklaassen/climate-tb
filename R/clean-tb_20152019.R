@@ -69,7 +69,12 @@ qtb <- read.csv(paste0(filedir,"Quarterly_TB 2015_2019.csv")) %>%
             region, date = zoo::as.yearqtr(paste0(year, " Q", quarter)),
             diagnosis = "all", tbhistory = "all",
             sex = "all", age = "all",
-            outcome = "notified", n)
+            outcome = "notified", n) %>%
+  ## Manually add the NAs for 2015Q1 ((and Q2)), and missing quarter in Karenga
+  mutate(n = case_when(date == "2015 Q1" ~ NA,
+                       date == "2015 Q2" & region != "Abim" ~ NA,
+                       date == "2017 Q1" & region == "Karenga" ~ NA,
+                       TRUE ~ replace_na(n, 0)))
 
 
 #### 2. Treatment outcomes #####
@@ -90,7 +95,12 @@ cc <- read.csv(paste0(filedir, "Complted Cured_.csv")) %>%
             region, date = zoo::as.yearqtr(paste0(year, " Q", quarter)),
             diagnosis, tbhistory,
             sex, age,
-            outcome, n)
+            outcome, n) %>%
+  ## Manually add the NAs for 2015Q1 ((and Q2)), and missing quarter in Karenga
+  mutate(n = case_when(date == "2015 Q1" ~ NA,
+                       date == "2015 Q2" & region != "Abim" ~ NA,
+                       date == "2017 Q1" & region == "Karenga" ~ NA,
+                       TRUE ~ replace_na(n, 0)))
 
 #### 5. Treatment outcomes ####
 dd_names <- read.csv("data-helpers/tb_20152019_died-varnames.csv")
@@ -120,6 +130,6 @@ dd <- read.csv(paste0(filedir, "Number Died_failure_LTFUP_.csv")) %>%
 
 notif_age_sex %>% bind_rows(qtb) %>%
   bind_rows(cc) %>% bind_rows(dd) %>%
-  filter(region %in% districts) %>%
+  filter(region %in% districts) %>% 
 write_csv("data-clean/tb_20152019.csv")
 

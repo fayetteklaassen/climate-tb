@@ -66,7 +66,7 @@ oo <- read.csv(paste0(filedir,"oUTCOMES_2020-Onwards.csv")) %>%
             region, date  = zoo::as.yearqtr(paste0(year, " Q", quarter)),
             diagnosis, tbhistory,
             sex, age,
-            outcome, n = as.numeric(n)) 
+            outcome, n = replace_na(as.numeric(n),0)) 
 
 ##### BInd rows and write csv ####
 
@@ -75,12 +75,12 @@ ntf %>% bind_rows(oo) %>%
 #### (1) outcomes by sex x diagnosis #####
 oo %>%
   filter(slice == "diag-history") %>%
-  transmute(region, date, outcome, sex, diagnosis, tbhistory, n = as.numeric(n)) %>%
+  transmute(region, date, outcome, sex, diagnosis, tbhistory, n = replace_na(as.numeric(n),0)) %>%
   write_csv("data-clean/tb_20202024_outcomes-history-diagnosis.csv")
 
 #### (2) outcomes by sex x age (new/relapse only)#####
 oo %>% filter(slice == "age-sex") %>%
-  transmute(region, date, outcome, sex, age, n = as.numeric(n)) %>%
+  transmute(region, date, outcome, sex, age, n = replace_na(as.numeric(n),0)) %>%
   write_csv("data-clean/tb_20202024_outcomes-sex-age_new-relapse.csv")
 
 #### (3) outcomes link####
