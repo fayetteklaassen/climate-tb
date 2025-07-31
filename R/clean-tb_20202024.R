@@ -86,7 +86,7 @@ oo %>% filter(slice == "age-sex") %>%
 #### (3) outcomes link####
 oo %>%
   filter(slice %in% c("age-sex", "diag-history", "died_all")) %>%
-  mutate(n = as.numeric(n)) %>%
+  mutate(n = replace_na(as.numeric(n),0)) %>%
   group_by(region, date, outcome, slice) %>%
   summarize(has_missing = case_when(is.na(sum(n)) ~ TRUE,
                                     TRUE ~ FALSE),

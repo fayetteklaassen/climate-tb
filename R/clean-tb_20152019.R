@@ -38,13 +38,13 @@ notif_age_sex <- read.csv(paste0(filedir, "Notified details.csv")) %>%
                             !is.na("sex") ~ "all",
                             TRUE ~ NA),
             tbhistory, age, diagnosis,
-            n = ifelse(is.na(n), 0, n),
+            n,
             date  = zoo::as.yearqtr(paste0(year, " Q", quarter))) %>%
   ## Manually add the NAs for 2015Q1 ((and Q2)), and missing quarter in Karenga
   mutate(n = case_when(date == "2015 Q1" ~ NA,
                            date == "2015 Q2" & region != "Abim" ~ NA,
                            date == "2017 Q1" & region == "Karenga" ~ NA,
-                           TRUE ~ n)) %>%
+                           TRUE ~ replace_na(n, 0))) %>%
   transmute(slice = case_when(age == "all" ~ "notifications_diagnosis_tbhistory_sex",
                            TRUE ~ "notifications_sex_age"),
             region, date,
@@ -110,7 +110,13 @@ dd <- read.csv(paste0(filedir, "Number Died_failure_LTFUP_.csv")) %>%
             region, date = zoo::as.yearqtr(paste0(year, " Q", quarter)),
             diagnosis, tbhistory,
             sex, age,
-            outcome, n)
+            outcome, n) %>%
+  ## Manually add the NAs for 2015Q1 ((and Q2)), and missing quarter in Karenga
+  mutate(n = case_when(date == "2015 Q1" ~ NA,
+                       date == "2015 Q2" & region != "Abim" ~ NA,
+                       date == "2017 Q1" & region == "Karenga" ~ NA,
+                       TRUE ~ replace_na(n, 0)))
+  
 
 notif_age_sex %>% bind_rows(qtb) %>%
   bind_rows(cc) %>% bind_rows(dd) %>%
