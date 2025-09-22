@@ -179,5 +179,5 @@ tb_nr %>%
   ) +
   scale_color_manual(values = cb_palette) +
   theme_minimal() + 
-  labs(title = "TB notification rate per district over time", x = "Time", y = "TB notification rate per 100 000 individuals") +
+  labs(title = "Karamoja: TB notification rate per district over time", x = "Time", y = "TB notification rate per 100 000 individuals") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
