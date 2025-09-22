@@ -232,7 +232,10 @@ cn_hist_sex_14 %>%
     date = zoo::as.yearqtr(paste0(year, " Q", quarter)),
     diagnosis, tbhistory, 
     sex, age = "all", 
-    outcome = "notified", n) -> notif
+    outcome = "notified", n) %>%
+  # filter out the 'total' sex groups, to prevent double counting
+  # totals are only listed for a few categories, not all.
+  filter(sex != "total") -> notif
 
   # write.csv(notif, "data-clean/tb_20072014_notifications.csv")
 
@@ -264,6 +267,12 @@ out_hist %>%
             sex = "all", age = "all",
             outcome, n = value) -> outcomes
 
-write_csv(rbind(notif, outcomes),
+final <- rbind(notif, outcomes) %>%
+  mutate(n = case_when(region == "Amudat" & date < as.yearqtr("2010 Q3") ~ NA,
+                       region == "Napak" & date < as.yearqtr("2010 Q4") ~ NA,
+                       date > as.yearqtr("2014 Q1") ~ NA,
+                       TRUE ~ replace_na(n, 0)))
+
+write_csv(final,
           "data-clean/tb_20072014.csv")
 

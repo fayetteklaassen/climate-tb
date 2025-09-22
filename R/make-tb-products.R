@@ -5,6 +5,7 @@ source("R/helper.R")
 df <- read_csv("data-clean/tb_total.csv") %>%
          left_join(subregions, by = "region") %>%
          filter(diagnosis != "eptb") %>%
+  filter(diagnosis != "EPTB") %>%
   mutate(date = zoo::as.yearqtr(date))
 
 
@@ -43,6 +44,27 @@ df %>%
   # check that there's only 1 entry per quarter (no overlapping slices)
   # group_by(region, date) %>% summarize(n = length(unique(time)),.groups= 'drop') %>% arrange(desc(n))
   transmute(topdistrict, date, tbhistory, n) %>% write_csv("data-products/notifications-by-tbhistory.csv")
+
+
+#### Make notifications by sex ####
+df %>%
+  filter(outcome == "notified") %>%
+  filter(sex %in% c("f","m","female","male")) %>%
+  mutate(sex = case_when(sex == "f" ~ "female",
+                         sex == "m" ~ "male",
+                         TRUE ~ sex)) %>% 
+  group_by(slice,topdistrict,date,sex,time) %>%
+  ## sum over sex, diagnosis and age
+  summarize(n_exclNA = sum(n, na.rm = TRUE), 
+            has_NA = any(is.na(n)),
+    n = sum(n), .groups = 'drop') %>% 
+  filter(slice == "outcomes_diagnosis_tbhistory_sex" |
+           slice == "notifications_diagnosis_tbhistory_sex") %>%# pull(tbhistory) %>% unique
+
+  # check that there's only 1 entry per quarter (no overlapping slices)
+  # group_by(region, date) %>% summarize(n = length(unique(time)),.groups= 'drop') %>% arrange(desc(n))
+  transmute(topdistrict, date, sex, n, n_exclNA, has_NA) %>% write_csv("data-products/notifications-by-sex.csv")
+
 
 #### Make Treatment Outcomes #####
 #### Note, these do NOT necessarily add up to the notifications ####

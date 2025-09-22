@@ -2,17 +2,23 @@
 *.csv
 *.xls
 *.xlsx
+*.pdf
+*notes/
+*data-raw/
+*data-processed/
 
 # History files
 .Rhistory
 .Rapp.history
 
 # Session Data files
+*.Rproj
 .RData
 .RDataTmp
 
 # User-specific files
 .Ruserdata
+.DS_Store
 
 # Example code in package build process
 *-Ex.R
