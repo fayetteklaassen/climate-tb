@@ -8,7 +8,7 @@ library(readxl)
 library(fs)
 
 # root of data folder
-root_path <- "."
+root_path <- "data"
 
 # list of Karamoja's districts and map to the original 5 districts
 districts <- c(
@@ -72,14 +72,11 @@ sum(is.na(tb_cn_2$CN))
 filter(tb_cn_2, is.na(CN))
 # manually checked in original csv file: PASS
 
-# TODO: population size time-series over 2015-2017 to be rebuild
-
-
 # ---- TB CN 2020 - 2024 ----
 
 tb_file_3 <- "Notifications.csv"
 
-tb_cn_3 <- read_csv(tb_file_3) |>
+tb_cn_3 <- read_csv(path(root_path, tb_file_3)) |>
   
   # all blanks are zeroes
   mutate(across(where(is.numeric), ~ replace_na(., 0))) |>
@@ -123,6 +120,20 @@ tb_cn <- bind_rows(select(tb_cn_1, -Population), tb_cn_2, tb_cn_3)
 tb_cn <- tb_cn %>% mutate(root_district = districts_map[District]) %>%
   group_by(Year, Quarter, root_district) %>% summarize(CN = sum(CN)) %>% ungroup
 
+# ---- Population size time-series ----
+
+pop_file <- "pop-quarterly-assumed.csv"
+
+pop <- read_csv(path(root_path, pop_file), na = "NA") %>%
+  mutate(Year = as.numeric(str_extract(date, "^\\d{4}")),
+         Quarter = as.numeric(str_extract(date, "\\d$")),
+         root_district = topdistrict,
+         pop = pop_assumed)
+
+# calculate notification rate per 100 000 individuals
+tb_nr <- tb_cn %>% left_join(pop, join_by(Year, Quarter, root_district)) %>%
+  mutate(nr = CN / pop * 1e5)
+
 # ---- Plotting ----
 
 # Okabe-Ito palette (8 colors)
@@ -151,4 +162,22 @@ tb_cn %>%
   scale_color_manual(values = cb_palette) +
   theme_minimal() + 
   labs(title = "TB cases per district over time", x = "Time", y = "TB cases") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+tb_nr %>% 
+  mutate(time = paste0(Year, ".", Quarter),
+         time = factor(time, levels = unique(time)), # preserve order when plotting
+         District = root_district) %>%
+  ggplot(aes(x = time, y = nr, color = District, group = District)) +
+  geom_line() +
+  geom_point() +
+  scale_x_discrete(
+    labels = function(x) {
+      # Show the year every 4th tick, otherwise blank
+      ifelse((seq_along(x) - 1) %% 4 == 0, str_extract(x, "\\d{4}"), "")
+    }
+  ) +
+  scale_color_manual(values = cb_palette) +
+  theme_minimal() + 
+  labs(title = "TB notification rate per district over time", x = "Time", y = "TB notification rate per 100 000 individuals") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
