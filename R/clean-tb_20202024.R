@@ -6,7 +6,7 @@ source("R/helper.R")
 
 #### 
 # list.files(filedir)
-## Notifications -- three slices of notification data: (1) by on-treatment (2) by reigsterd and (3)
+## Notifications -- three slices of notification data: (1) by on-treatment (2) by registered and (3)
 # by age/sex for only new and relapse
 ## Outcomes -- two slices of outcomes (by age/sex and by diagnosis/tbhistory), 
 # in addition to 3 unique summary measures (coded as additinoal slices)
@@ -60,11 +60,13 @@ oo <- read.csv(paste0(filedir,"oUTCOMES_2020-Onwards.csv")) %>%
               outcome == "success_rate" ~ "success_rate",
               diagnosis == "all" ~ "outcomes-new-relapse_sex_age",
               diagnosis %in% c("unknown",
+                               "eptb", "cd","bc") & outcome == "notified" ~ "notified_diagnosis_tbhistory_sex",
+              diagnosis %in% c("unknown",
                                "eptb", "cd","bc") ~ "outcomes_diagnosis_tbhistory_sex"),
             region, date  = zoo::as.yearqtr(paste0(year, " Q", quarter)),
             diagnosis, tbhistory,
             sex, age,
-            outcome, n = as.numeric(n)) 
+            outcome, n = replace_na(as.numeric(n),0)) 
 
 ##### BInd rows and write csv ####
 
@@ -73,18 +75,18 @@ ntf %>% bind_rows(oo) %>%
 #### (1) outcomes by sex x diagnosis #####
 oo %>%
   filter(slice == "diag-history") %>%
-  transmute(region, date, outcome, sex, diagnosis, tbhistory, n = as.numeric(n)) %>%
+  transmute(region, date, outcome, sex, diagnosis, tbhistory, n = replace_na(as.numeric(n),0)) %>%
   write_csv("data-clean/tb_20202024_outcomes-history-diagnosis.csv")
 
 #### (2) outcomes by sex x age (new/relapse only)#####
 oo %>% filter(slice == "age-sex") %>%
-  transmute(region, date, outcome, sex, age, n = as.numeric(n)) %>%
+  transmute(region, date, outcome, sex, age, n = replace_na(as.numeric(n),0)) %>%
   write_csv("data-clean/tb_20202024_outcomes-sex-age_new-relapse.csv")
 
 #### (3) outcomes link####
 oo %>%
   filter(slice %in% c("age-sex", "diag-history", "died_all")) %>%
-  mutate(n = as.numeric(n)) %>%
+  mutate(n = replace_na(as.numeric(n),0)) %>%
   group_by(region, date, outcome, slice) %>%
   summarize(has_missing = case_when(is.na(sum(n)) ~ TRUE,
                                     TRUE ~ FALSE),

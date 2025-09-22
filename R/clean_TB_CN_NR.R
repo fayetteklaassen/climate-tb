@@ -131,7 +131,7 @@ pop <- read_csv(path(root_path, pop_file), na = "NA") %>%
          pop = pop_assumed)
 
 # calculate notification rate per 100 000 individuals
-tb_nr <- tb_cn %>% left_join(pop, join_by(Year, Quarter, root_district)) %>%
+tb_nr <- tb_cn %>% left_join(pop) %>%
   mutate(nr = CN / pop * 1e5)
 
 # ---- Plotting ----
